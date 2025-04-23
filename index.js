@@ -30,7 +30,9 @@ app.post('/contact', async (req, res) => {
 
   try {
     const transporter = nodemailer.createTransport({
-      service: 'hotmail', // or use 'Outlook', 'Yahoo', 'Mailgun', etc.
+      service: 'smtp.office365.com',
+      port: 587,
+    secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

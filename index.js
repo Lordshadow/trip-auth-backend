@@ -35,9 +35,7 @@ app.post('/contact', async (req, res) => {
 
   try {
     const transporter = nodemailer.createTransport({
-      service: 'smtp.office365.com',
-      port: 587,
-    secure: false,
+      service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

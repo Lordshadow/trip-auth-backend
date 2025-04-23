@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
 });
 
 
-app.post('https://trip-planner-backend-isxb.onrender.com/contact', async (req, res) => {
+app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
   try {
@@ -52,11 +52,20 @@ app.post('https://trip-planner-backend-isxb.onrender.com/contact', async (req, r
              <p><strong>Message:</strong><br/>${message}</p>`,
     });
 
-    res.status(200).send('Email sent successfully');
+    res.status(200).json({
+      success: true,
+      message: 'Email sent successfully',
+    });
   } catch (error) {
-    res.status(500).send('Email failed to send');
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Email failed to send',
+      error: error.message,
+    });
   }
 });
+
 
 
 

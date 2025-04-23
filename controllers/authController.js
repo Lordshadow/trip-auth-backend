@@ -11,6 +11,8 @@ const registerUser = async (req, res) => {
       password,
     });
 
+    console.log("User created in Firebase:", userRecord.uid);
+
     const newUser = new User({
       email,
       firebaseUID: userRecord.uid,

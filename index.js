@@ -4,14 +4,14 @@ const cors = require("cors");
 require("dotenv").config();
 const nodemailer = require('nodemailer');
 
-
+const profileRoutes = require('./routes/profileRoutes');
 const authRoutes = require('./routes/authRoutes'); 
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-
+app.use('/api/profile',profileRoutes);
 app.use('/api/auth', authRoutes);
 
 // Connect to MongoDB
@@ -56,7 +56,7 @@ app.post('/contact', async (req, res) => {
 });
 
 
-app.use('/api/profile', profileRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;

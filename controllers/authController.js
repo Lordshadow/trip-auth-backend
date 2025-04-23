@@ -2,7 +2,7 @@ const User = require('../models/User');
 
 // Register user - just save info, don't create Firebase user again
 const registerUser = async (req, res) => {
-  const { email, firebaseUID, phoneNumber } = req.body;
+  const { name,email, firebaseUID, phoneNumber } = req.body;
 
   try {
     // Check if user already exists
@@ -13,9 +13,11 @@ const registerUser = async (req, res) => {
 
     // Create new user record in MongoDB
     const newUser = new User({
+      name,
       email,
       firebaseUID,
       phoneNumber,
+      
     });
 
     await newUser.save();

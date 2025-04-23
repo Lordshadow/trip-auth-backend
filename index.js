@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
 });
 
 
-app.post('/contact', async (req, res) => {
+app.post('https://trip-planner-backend-isxb.onrender.com/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
   try {

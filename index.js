@@ -6,18 +6,36 @@ const nodemailer = require('nodemailer');
 
 const profileRoutes = require('./routes/profileRoutes');
 const authRoutes = require('./routes/authRoutes'); 
+const vehicleRoutes = require('./routes/vehicleRoutes');
+const tempBookingRoutes = require('./routes/tempBookings'); 
+const hotelRoutes = require('./routes/hotelRoutes');
+const tempHotelRoutes = require('./routes/tempHotelRoutes');
+
+
 
 const app = express();
-app.use(cors(
-  {
-    origin: 'https://triptacktix.web.app',
-    credentials: true
-  }
-));
+const allowedOrigins = ['https://triptacktix.web.app', 'http://localhost:5173']; // Add your local port
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/profile',profileRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/temp-bookings', tempBookingRoutes); 
+app.use('/api/hotels', hotelRoutes);
+app.use('/api/hotel-booking', tempHotelRoutes);
+
+
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)

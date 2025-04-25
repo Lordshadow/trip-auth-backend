@@ -1,11 +1,7 @@
-const mongoose = require('mongoose');
+const express = require('express');
+const router = express.Router();
+const { checkAvailability } = require('../controllers/hotelController');
 
-const tempHotelBookingSchema = new mongoose.Schema({
-    firebaseUID: { type: String, required: true },
-    hotel: { type: String, required: true },
-    location: { type: String, required: true },
-    checkIn: { type: Date, required: true },
-    checkOut: { type: Date, required: true }
-}, { timestamps: true });
+router.post('/check-availability', checkAvailability);
 
-module.exports = mongoose.model('TempHotelBooking', tempHotelBookingSchema);
+module.exports = router;

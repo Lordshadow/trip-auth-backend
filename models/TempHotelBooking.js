@@ -9,4 +9,4 @@ const tempHotelBookingSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now, expires: 3600 } // TTL index: expires after 1 hour
 }, { timestamps: true });
 
-module.exports = mongoose.model('TempHotelBooking', tempHotelBookingSchema);
+module.exports = mongoose.models.TempHotelBooking || mongoose.model('TempHotelBooking', tempHotelBookingSchema);

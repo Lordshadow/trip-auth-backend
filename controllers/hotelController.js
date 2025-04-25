@@ -94,8 +94,57 @@ const getHotelDetails = async (req, res) => {
     }
 };
 
+const getAvailableRooms = async (req, res) => {
+    const { hotelName, location, checkIn, checkOut } = req.body;
+
+    if (!hotelName || !location || !checkIn || !checkOut) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    try {
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+
+        const hotel = await Hotel.findOne({ hotel: hotelName, location });
+
+        if (!hotel) {
+            return res.status(404).json({ success: false, message: 'Hotel not found' });
+        }
+
+        // Check for overlapping permanent bookings
+        const overlappingPermanent = hotel.bookings.filter(booking => {
+            const start = new Date(booking.checkIn);
+            const end = new Date(booking.checkOut);
+            return checkInDate <= end && checkOutDate >= start;
+        });
+
+        // Check for overlapping temporary bookings
+        const overlappingTemp = await TempHotelBooking.find({
+            hotel: hotel.hotel,
+            location: hotel.location,
+            $or: [
+                { checkIn: { $lte: checkOutDate }, checkOut: { $gte: checkInDate } }
+            ]
+        });
+
+        // Calculate available rooms
+        const totalOverlapping = overlappingPermanent.length + overlappingTemp.length;
+        const availableRooms = hotel.count - totalOverlapping;
+
+        res.status(200).json({
+            success: true,
+            hotel: hotel.hotel,
+            availableRooms: availableRooms
+        });
+    } catch (error) {
+        console.error('Error fetching available rooms:', error);
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+};
+
 module.exports = {
     checkAvailability,
     tempBookHotel,
-    getHotelDetails
+    getHotelDetails,
+    getAvailableRooms // Ensure this is included
 };

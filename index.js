@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
 const tempBookingRoutes = require('./routes/tempBookings'); 
 const hotelRoutes = require('./routes/hotelRoutes');
+const tempHotelBookingRoutes = require('./routes/tempHotelBookings');
 
 const app = express();
 const allowedOrigins = ['https://triptacktix.web.app', 'http://localhost:5173']; // Add your local port
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/temp-bookings', tempBookingRoutes); 
 app.use('/api/hotels', hotelRoutes);
+app.use('/api/temp-bookings', tempHotelBookingRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)

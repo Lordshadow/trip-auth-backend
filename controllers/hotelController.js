@@ -1,73 +1,49 @@
 const Hotel = require('../models/Hotel');
+const TempHotelBooking = require('../models/TempHotelBooking');
 
 const checkAvailability = async (req, res) => {
-    const { location, hotel, checkInDate, checkOutDate } = req.body;
+    const { location, checkIn, checkOut } = req.body;
 
-    if (!location || !checkInDate || !checkOutDate) {
-        return res.status(400).json({
-            success: false,
-            message: 'Missing required fields'
-        });
+    if (!location || !checkIn || !checkOut) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
     try {
-        const checkIn = new Date(checkInDate);
-        const checkOut = new Date(checkOutDate);
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
 
-        // If specific hotel is requested
-        if (hotel) {
-            const selectedHotel = await Hotel.findOne({ 
-                location: location,
-                hotel: hotel 
+        const hotels = await Hotel.find({ location });
+        const results = [];
+
+        for (const hotel of hotels) {
+            const overlappingPermanent = hotel.bookings.filter(booking => {
+                const start = new Date(booking.checkIn);
+                const end = new Date(booking.checkOut);
+                return checkInDate <= end && checkOutDate >= start;
             });
 
-            if (!selectedHotel) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Hotel not found'
+            const overlappingTemp = await TempHotelBooking.find({
+                hotel: hotel.hotel,
+                location: hotel.location,
+                $or: [
+                    { checkIn: { $lte: checkOutDate }, checkOut: { $gte: checkInDate } }
+                ]
+            });
+
+            const totalOverlapping = overlappingPermanent.length + overlappingTemp.length;
+            const availableRooms = hotel.count - totalOverlapping;
+
+            if (availableRooms > 0) {
+                results.push({
+                    hotel: hotel.hotel,
+                    ratePerDay: hotel.ratePerDay,
+                    rating: hotel.rating || 4,
+                    availableRooms: availableRooms
                 });
             }
-
-            const overlappingBookings = selectedHotel.bookings.filter(booking => {
-                const bookingStart = new Date(booking.checkIn);
-                const bookingEnd = new Date(booking.checkOut);
-                return checkIn <= bookingEnd && checkOut >= bookingStart;
-            });
-
-            const availableRooms = selectedHotel.count - overlappingBookings.length;
-
-            return res.status(200).json({
-                success: true,
-                isAvailable: availableRooms > 0,
-                availableHotels: [{
-                    hotel: selectedHotel.hotel,
-                    ratePerDay: selectedHotel.ratePerDay,
-                    rating: selectedHotel.rating || 4,
-                    availableRooms: availableRooms
-                }]
-            });
         }
 
-        // If no specific hotel, return all available hotels
-        const hotels = await Hotel.find({ location });
-        const results = hotels.map(hotel => {
-            const overlappingBookings = hotel.bookings.filter(booking => {
-                const bookingStart = new Date(booking.checkIn);
-                const bookingEnd = new Date(booking.checkOut);
-                return checkIn <= bookingEnd && checkOut >= bookingStart;
-            });
-
-            const availableRooms = hotel.count - overlappingBookings.length;
-
-            return {
-                hotel: hotel.hotel,
-                ratePerDay: hotel.ratePerDay,
-                rating: hotel.rating || 4,
-                availableRooms: availableRooms
-            };
-        }).filter(hotel => hotel.availableRooms > 0);
-
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             isAvailable: results.length > 0,
             availableHotels: results
@@ -75,14 +51,29 @@ const checkAvailability = async (req, res) => {
 
     } catch (error) {
         console.error('Error checking availability:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+};
+
+const tempBookHotel = async (req, res) => {
+    const { firebaseUID, hotel, location, checkIn, checkOut } = req.body;
+
+    if (!firebaseUID || !hotel || !location || !checkIn || !checkOut) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    try {
+        const tempBooking = new TempHotelBooking({ firebaseUID, hotel, location, checkIn, checkOut });
+        await tempBooking.save();
+
+        res.status(201).json({ success: true, message: 'Temporary booking created successfully' });
+    } catch (error) {
+        console.error('Error creating temporary booking:', error);
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 };
 
 module.exports = {
-    checkAvailability
+    checkAvailability,
+    tempBookHotel
 };

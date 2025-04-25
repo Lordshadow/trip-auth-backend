@@ -45,6 +45,23 @@ const tempBookHotel = async (req, res) => {
     }
 };
 
+// Fetch temporary hotel bookings for a specific person
+router.get('/temp-bookings/:firebaseUID', async (req, res) => {
+    const { firebaseUID } = req.params;
+
+    try {
+        const tempBookings = await TempHotelBooking.find({ firebaseUID });
+        if (!tempBookings || tempBookings.length === 0) {
+            return res.status(404).json({ success: false, message: 'No bookings found for this user' });
+        }
+
+        res.status(200).json({ success: true, tempBookings });
+    } catch (error) {
+        console.error('Error fetching temporary hotel bookings:', error);
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
 // Define routes
 router.post('/check-availability', checkAvailability);
 router.post('/temp-book', tempBookHotel);

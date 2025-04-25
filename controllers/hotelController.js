@@ -73,7 +73,29 @@ const tempBookHotel = async (req, res) => {
     }
 };
 
+const getHotelDetails = async (req, res) => {
+    const { hotelName } = req.body;
+
+    if (!hotelName) {
+        return res.status(400).json({ success: false, message: 'Hotel name is required' });
+    }
+
+    try {
+        const hotel = await Hotel.findOne({ hotel: hotelName });
+
+        if (!hotel) {
+            return res.status(404).json({ success: false, message: 'Hotel not found' });
+        }
+
+        res.status(200).json({ success: true, hotel });
+    } catch (error) {
+        console.error('Error fetching hotel details:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     checkAvailability,
-    tempBookHotel
+    tempBookHotel,
+    getHotelDetails
 };
